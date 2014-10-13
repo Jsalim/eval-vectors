@@ -1,4 +1,3 @@
-# rho = 1 - 6*d*d/(n*(n*n-1))
 import math
 from operator import itemgetter
 from numpy.linalg import norm
@@ -6,24 +5,31 @@ from numpy.linalg import norm
 def cosine_sim(vec1, vec2):
   return vec1.dot(vec2)/(norm(vec1)*norm(vec2))
 
-''' Assumes that the items in the list can't have the same value and hence the same rank '''
-def assign_ranks(itemDict):
-  rankedDict = {}
-  rank = 0
-  for key, val in sorted(itemDict.items(), key=itemgetter(1), reverse=True):
-    rankedDict[key] = rank
-    rank += 1
-  return rankedDict
+def assign_ranks(item_dict):
+  ranked_dict = {}
+  sorted_list = [(key, val) for (key, val) in sorted(item_dict.items(),
+                                                     key=itemgetter(1),
+                                                     reverse=True)]
+  for i, (key, val) in enumerate(sorted_list):
+    same_val_indices = []
+    for j, (key2, val2) in enumerate(sorted_list):
+      if val2 == val:
+        same_val_indices.append(j+1)
+    if len(same_val_indices) == 1:
+      ranked_dict[key] = i+1
+    else:
+      ranked_dict[key] = 1.*sum(same_val_indices)/len(same_val_indices)
+  return ranked_dict
 
-''' Assumes that the elements in the list can never have the same value '''
-def spearmans_rho(rankedDict1, rankedDict2):
-  assert len(rankedDict1) == len(rankedDict2)
-  x_avg = sum([val for val in rankedDict1.values()])/len(rankedDict1)
-  y_avg = sum([val for val in rankedDict2.values()])/len(rankedDict2)
+def spearmans_rho(ranked_dict1, ranked_dict2):
+  assert len(ranked_dict1) == len(ranked_dict2)
+  x_avg = 1.*sum([val for val in ranked_dict1.values()])/len(ranked_dict1)
+  y_avg = 1.*sum([val for val in ranked_dict2.values()])/len(ranked_dict2)
   num, d_x, d_y = (0., 0., 0.)
-  for key in rankedDict1.keys():
-    xi = rankedDict1[key]
-    yi = rankedDict2[key]
-    num += (xi-yi)**2
-  n = 1.*len(rankedDict1)
-  return 1-6*num/(n*(n*n-1))
+  for key in ranked_dict1.keys():
+    xi = ranked_dict1[key]
+    yi = ranked_dict2[key]
+    num += (xi-x_avg)*(yi-y_avg)
+    d_x += (xi-x_avg)**2
+    d_y += (yi-y_avg)**2
+  return num/(math.sqrt(d_x*d_y))
