@@ -1,6 +1,6 @@
 #eval-vectors
 
-A bunch of scripts for evaluating word vectors on word similarity tasks.
+A bunch of scripts for evaluating word vectors on word similarity tasks. These scripts can read word vectors in ".gz" format, so no need to decompress the big files.
 
 ###all-wordsim
 ```python all_wordsim.py word_vector_file```
